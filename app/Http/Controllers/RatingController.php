@@ -20,38 +20,59 @@ class RatingController extends Controller
 
     public function store(Request $request)
     {
-
+        
         $request->validate([
             'book_id' => 'required|exists:books,id',
             'rating' => 'required|integer|min:1|max:10',
         ]);
 
-        $bookId = $request->book_id;
+        $userId = Auth::id(); 
 
-        // Ambil session ratings
-        $ratedBooks = session()->get('rated_books', []);
+        
 
-        if (isset($ratedBooks[$bookId])) {
-            $lastRated = $ratedBooks[$bookId];
-            $diff = now()->diffInHours(Carbon::parse($lastRated));
+        try {
+            DB::beginTransaction();
 
-            if ($diff < 24) {
-                $hoursLeft = 24 - $diff;
-                return back()->with('error', "Anda sudah memberi rating buku ini. Tunggu $hoursLeft jam lagi.");
+            
+            $book = Book::where('id', $request->book_id)
+                ->where('author_id', $request->author_id)
+                ->first();
+
+            if (!$book) {
+                return back()->withErrors(['book_id' => '❌ Buku tidak sesuai dengan penulis yang dipilih.'])->withInput();
             }
+
+            //Cegah rating duplikat (user yang sama ke buku yang sama)
+            $alreadyRated = Rating::where('user_id', $userId)
+                ->where('book_id', $book->id)
+                ->exists();
+
+            if ($alreadyRated) {
+                return back()->withErrors(['rating' => '❌ Anda sudah memberi rating untuk buku ini.'])->withInput();
+            }
+
+            //Batasi 1 rating per 24 jam untuk semua buku
+            $lastRating = Rating::where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($lastRating && $lastRating->created_at > now()->subDay()) {
+                return back()->withErrors(['rating' => '⚠️ Anda hanya dapat memberi 1 rating setiap 24 jam.'])->withInput();
+            }
+
+            //Simpan rating 
+            Rating::create([
+                'user_id' => null,
+                'book_id' => $book->id,
+                'rating' => $request->rating,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('books.index')->with('success', '✅ Rating berhasil disimpan!');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->withErrors(['system' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
         }
-
-        // Simpan rating ke database
-        Rating::create([
-            'book_id' => $bookId,
-            'rating' => $request->rating,
-            'user_id' => null, // tetap kosong, karena tidak ada user login
-        ]);
-
-        // Update session
-        $ratedBooks[$bookId] = now()->toDateTimeString();
-        session()->put('rated_books', $ratedBooks);
-
-        return back()->with('success', 'Terima kasih telah memberi rating!');
     }
 }
