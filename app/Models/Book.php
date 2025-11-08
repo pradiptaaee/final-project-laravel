@@ -11,47 +11,18 @@ class Book extends Model
 
     protected $table = 'books';
 
-    protected $fillable = [
-        'title',
-        'author_id',
-        'category_id',
-        'publication_year',
-        'price',
-    ];
+    protected $fillable = ['title', 'isbn', 'author_id', 'category_id', 'publication_year', 'status', 'location'];
 
     public function author()
     {
         return $this->belongsTo(Author::class);
     }
-
-    /**
-     * Relasi ke Category
-     */
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
-
-    /**
-     * Relasi ke Rating
-     */
     public function ratings()
     {
         return $this->hasMany(Rating::class);
-    }
-    /**
-     * Ambil rata-rata rating buku
-     */
-    public function averageRating()
-    {
-        return $this->ratings()->avg('rating');
-    }
-
-    /**
-     * Ambil total jumlah voters
-     */
-    public function totalVoters()
-    {
-        return $this->ratings()->count();
     }
 }

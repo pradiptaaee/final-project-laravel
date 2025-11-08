@@ -15,8 +15,8 @@ class RatingSeeder extends Seeder
     public function run(): void
     {
          $faker = Faker::create();
-        $total = 500000;
-        $batchSize = 5000; 
+        $total = 10000;
+        $batchSize = 2000; 
 
         echo "🚀 Mulai seeding rating data...\n";
 
@@ -25,10 +25,10 @@ class RatingSeeder extends Seeder
 
             for ($j = 0; $j < $batchSize; $j++) {
                 $data[] = [
-                    'book_id' => $faker->numberBetween(1, 100000),
-                    'user_id' => $faker->numberBetween(1, 1000), 
+                    'book_id' => $faker->numberBetween(1, 3000),
                     'rating' => $faker->numberBetween(1, 10),
-                    'review' => $faker->optional()->sentence(),
+                    'created_at' => now()->subDays(rand(0, 90)),
+                    'updated_at' => now(),
                 ];
             }
 
@@ -37,6 +37,6 @@ class RatingSeeder extends Seeder
             echo "✅ Batch " . (($i / $batchSize) + 1) . " selesai (" . ($i + $batchSize) . "/" . $total . ")\n";
         }
 
-        echo "🎉 Selesai membuat 500.000 data rating!\n";
+        echo "🎉 Selesai membuat 10.000 data rating!\n";
     }
 }

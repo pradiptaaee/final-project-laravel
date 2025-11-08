@@ -16,32 +16,19 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::middleware('auth')->group(function () {
-    Route::get('/ratings/create', [RatingController::class, 'create'])->name('rating.create');
-    Route::post('/ratings/store', [RatingController::class, 'store'])->name('rating.store');
-});
+// Route::middleware('auth')->group(function () {
+//     Route::get('/ratings/create', [RatingController::class, 'create'])->name('rating.create');
+//     Route::post('/ratings/store', [RatingController::class, 'store'])->name('rating.store');
+// });
 
 
-
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Route::resource('books', BookController::class);
-Route::resource('authors', AuthorController::class);
 
 Route::get('/', [BookController::class, 'index'])->name('books.index');
 Route::get('/books', [BookController::class, 'index']);
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 
-// AJAX for dependent dropdown
-Route::get('/authors/{author}/books', [BookController::class, 'booksByAuthor'])->name('authors.books');
-
-Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');
+// Route::resource('authors', AuthorController::class)->only(['index', 'show']);
+Route::get('/authors/top', [AuthorController::class, 'top'])->name('authors.top');
 
 Route::get('/ratings/create', [RatingController::class, 'create'])->name('ratings.create');
 Route::post('/ratings', [RatingController::class, 'store'])->name('ratings.store');

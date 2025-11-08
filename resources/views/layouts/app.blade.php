@@ -18,7 +18,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" href="{{ route('books.index') }}">Books</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ route('authors.index') }}">Authors</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('authors.top') }}">Authors</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ route('ratings.create') }}">Rate a Book</a></li>
         
       </ul>

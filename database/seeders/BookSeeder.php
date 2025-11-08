@@ -16,8 +16,8 @@ class BookSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-        $total = 100000; // total buku
-        $batchSize = 5000; // 2000 per batch biar cepat tapi aman di RAM
+        $total = 3000; // total buku
+        $batchSize = 1000; // 2000 per batch biar cepat tapi aman di RAM
 
         echo "🚀 Mulai seeding books data...\n";
 
@@ -28,9 +28,11 @@ class BookSeeder extends Seeder
                 $data[] = [
                     'title' => $faker->sentence(3),
                     'isbn' => $faker->unique()->isbn13(),
-                    'author_id' => $faker->numberBetween(1, 1000), // sesuai jumlah fake author
-                    'category_id' => $faker->numberBetween(1, 3000), // sesuai jumlah fake category
+                    'author_id' => $faker->numberBetween(1, 100), // sesuai jumlah fake author
+                    'category_id' => $faker->numberBetween(1, 300), // sesuai jumlah fake category
                     'publication_year' => $faker->year(),
+                    'status' => $faker->randomElement(['available', 'rented', 'reserved']),
+                    'location' => 'Main Store',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

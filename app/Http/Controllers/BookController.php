@@ -1,162 +1,82 @@
 <?php
-
 namespace App\Http\Controllers;
-
-use App\Models\Author;
 use App\Models\Book;
-use App\Models\Rating;
+use App\Models\Author;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Category;
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        // $query = Book::with(['author', 'category', 'ratings']);
-        $query = Book::with(['author', 'category', 'ratings'])
-            ->addSelect([
-                'avg_rating' => Rating::selectRaw('AVG(rating)')
-                    ->whereColumn('ratings.book_id', 'books.id'),
+        $categories = Category::select('id', 'name')->orderBy('name')->get();
+        $authors = Author::select('id', 'name')->orderBy('name')->get();
 
-                'total_votes' => Rating::selectRaw('COUNT(*)')
-                    ->whereColumn('ratings.book_id', 'books.id')
-            ]);
+        $query = Book::with(['author', 'category'])
+            ->withAvg('ratings', 'rating')
+            ->withCount('ratings');
 
-
-
-        // --- FILTER BERDASARKAN KATEGORI DAN PENULIS (Tetap) ---
+        // FILTER CATEGORY (single select)
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
+        // FILTER AUTHOR
         if ($request->filled('author_id')) {
             $query->where('author_id', $request->author_id);
         }
+
+        // FILTER LAIN
         if ($request->filled('publication_year')) {
             $query->where('publication_year', $request->publication_year);
         }
 
-        // --- FITUR PENCARIAN RINGAN (Judul, ISBN, dan Penulis) ---
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('location')) {
+            $query->where('location', 'like', '%' . $request->location . '%');
+        }
+
+        // RATING RANGE
+        if ($request->filled('min_rating') || $request->filled('max_rating')) {
+            $min = $request->min_rating;
+            $max = $request->max_rating;
+            if ($min)
+                $query->having('ratings_avg_rating', '>=', (float) $min);
+            if ($max)
+                $query->having('ratings_avg_rating', '<=', (float) $max);
+        }
+
+        // PENCARIAN
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->search . '%';
-
-           
-            $authorIds = Author::where('name', 'like', $searchTerm)->pluck('id');
-
-          
-            $query->where(function ($q) use ($searchTerm, $authorIds) {
-                $q->where('title', 'like', $searchTerm)     
-                    ->orWhere('isbn', 'like', $searchTerm)
+            $s = '%' . $request->search . '%';
+            $authorIds = Author::where('name', 'like', $s)->limit(200)->pluck('id')->toArray();
+            $query->where(function ($q) use ($s, $authorIds) {
+                $q->where('title', 'like', $s)
+                    ->orWhere('isbn', 'like', $s)
                     ->orWhereIn('author_id', $authorIds);
             });
         }
 
-        // --- FILTER BERDASARKAN RATING RANGE BARU ---
-        // $query = Book::with(['author', 'category'])
-        //     ->withAvg('ratings', 'rating'); // menambahkan ratings_avg_rating
+        // SORTING
+        $sort = $request->get('sort', 'weighted_avg');
+        switch ($sort) {
+            case 'total_votes':
+                $query->orderByDesc('ratings_count');
+                break;
+            case 'alphabetical':
+                $query->orderBy('title', 'asc');
+                break;
+            default:
+                $query->orderByDesc('ratings_avg_rating')->orderByDesc('ratings_count');
+        }
 
-        // $minRating = $request->min_rating;
-        // $maxRating = $request->max_rating;
-
-        // if ($minRating || $maxRating) {
-        //     if ($minRating) {
-        //         $query->having('ratings_avg_rating', '>=', $minRating);
-        //     }
-        //     if ($maxRating) {
-        //         $query->having('ratings_avg_rating', '<=', $maxRating);
-        //     }
-        // }
-
-
-        // --- SORTING ---
-        // $sortBy = $request->get('sort', 'weighted_avg'); // Default ke Weighted Average Rating
-
-        // switch ($sortBy) {
-        //     case 'total_votes':
-        //         // Sorting berdasarkan kolom virtual 'total_votes' (jumlah votes)
-        //         $query->orderBy('total_votes', 'desc');
-        //         break;
-
-        //     case 'alphabetical':
-        //         // Sorting berdasarkan Judul
-        //         $query->orderBy('title', 'asc');
-        //         break;
-
-        //     case 'recent_popularity':
-        //         // Sorting berdasarkan jumlah votes dalam 30 hari terakhir (Membutuhkan Sub-query baru)
-        //         $query->addSelect([
-        //             'recent_votes' => Rating::selectRaw('COUNT(*)')
-        //                 ->whereColumn('ratings.book_id', 'books.id')
-        //                 ->where('created_at', '>=', now()->subDays(30))
-        //         ])->orderBy('recent_votes', 'desc');
-        //         break;
-
-        //     // Default: Weighted Average Rating
-        //     case 'weighted_avg':
-        //     default:
-        //         // Sorting berdasarkan kolom virtual 'avg_rating'
-        //         // Default sorting: Rating tertinggi, buku dengan rating null/0 ditaruh di bawah.
-        //         $query->orderBy('avg_rating', 'desc')->orderBy('total_votes', 'desc');
-        //         break;
-        // }
-
-        
         $books = $query->paginate(20)->appends($request->query());
-
-        return view('books.index', compact('books'));
-
+        $publication_years = Book::select('publication_year')->distinct()->pluck('publication_year');
 
 
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return view('books.index', compact('books', 'authors', 'categories', 'publication_years'));
     }
 }

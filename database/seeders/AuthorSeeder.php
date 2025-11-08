@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Author;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
 class AuthorSeeder extends Seeder
 {
@@ -13,7 +14,16 @@ class AuthorSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command->info('🚀 Seeding authors...');
-        Author::factory()->count(1000)->create();
+        $faker = Faker::create();
+        $data = [];
+        for ($i = 0; $i < 100; $i++) {
+            $data[] = [
+                'name' => $faker->name,
+                'bio' => $faker->paragraph,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        Author::insert($data);
     }
 }

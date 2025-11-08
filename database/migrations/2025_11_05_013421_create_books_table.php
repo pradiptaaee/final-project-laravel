@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('books', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 150);
-            $table->string('isbn', 30)->unique();
-            $table->foreignId('author_id')->constrained('authors')->onDelete('cascade');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->year('publication_year')->nullable();
+            $table->string('title', 255)->index();
+            $table->string('isbn', 50)->nullable()->index();
+            $table->foreignId('author_id')->constrained('authors')->cascadeOnDelete()->index();
+            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete()->index();
+            $table->year('publication_year')->nullable()->index();
+            $table->enum('status', ['available', 'rented', 'reserved'])->default('available')->index();
+            $table->string('location', 191)->nullable()->index();
             $table->timestamps();
 
             // Index untuk optimisasi filter dan pencarian

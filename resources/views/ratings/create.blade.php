@@ -1,23 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h2 class="mb-4">Give a Rating</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">⭐ Give a Rating</h2>
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $err)
-                    <li>{{ $err }}</li>
-                @endforeach
-            </ul>
-        </div>
+    @if (session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form action="{{ route('ratings.store') }}" method="POST" class="card p-4 shadow-sm">
+    <form method="POST" action="{{ route('ratings.store') }}" class="card p-4 shadow-sm">
         @csrf
-
-        {{-- Author --}}
         <div class="mb-3">
             <label class="form-label">Author</label>
             <select name="author_id" id="author_id" class="form-select" required>
@@ -28,7 +23,6 @@
             </select>
         </div>
 
-        {{-- Book --}}
         <div class="mb-3">
             <label class="form-label">Book</label>
             <select name="book_id" id="book_id" class="form-select" required>
@@ -36,17 +30,12 @@
             </select>
         </div>
 
-        {{-- Rating --}}
         <div class="mb-3">
-            <label class="form-label">Rating (1-10)</label>
-            <select name="rating" class="form-select" required>
-                @for($i = 1; $i <= 10; $i++)
-                    <option value="{{ $i }}">{{ $i }}</option>
-                @endfor
-            </select>
+            <label class="form-label">Rating (1–10)</label>
+            <input type="number" name="rating" class="form-control" min="1" max="10" required>
         </div>
 
-        <button class="btn btn-success w-100">Submit Rating</button>
+        <button class="btn btn-primary w-100">Submit</button>
     </form>
 </div>
 
@@ -54,10 +43,10 @@
 document.getElementById('author_id').addEventListener('change', async function() {
     const authorId = this.value;
     const bookSelect = document.getElementById('book_id');
-    bookSelect.innerHTML = '<option value="">Loading...</option>';
+    bookSelect.innerHTML = '<option>Loading...</option>';
 
     if (!authorId) {
-        bookSelect.innerHTML = '<option value="">-- Select Book --</option>';
+        bookSelect.innerHTML = '<option>-- Select Book --</option>';
         return;
     }
 

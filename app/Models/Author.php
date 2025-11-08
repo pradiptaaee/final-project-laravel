@@ -10,18 +10,10 @@ class Author extends Model
     use HasFactory;
 
     protected $table = 'authors';
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'bio'];
 
     public function books()
     {
         return $this->hasMany(Book::class);
-    }
-
-    /**
-     * Hitung rata-rata rating semua buku milik author ini
-     */
-    public function averageRating()
-    {
-        return $this->hasManyThrough(Rating::class, Book::class, 'author_id', 'book_id');
     }
 }
