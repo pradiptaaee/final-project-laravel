@@ -16,9 +16,9 @@ class BookController extends Controller
             ->withAvg('ratings', 'rating')
             ->withCount('ratings');
 
-        // FILTER CATEGORY (single select)
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        // Multiple Category (OR logic)
+        if ($request->filled('categories') && is_array($request->categories)) {
+            $query->whereIn('category_id', $request->categories);
         }
 
         // FILTER AUTHOR

@@ -5,7 +5,7 @@
         <h2 class="mb-4">📚 Book List</h2>
         <div class="card mb-3 p-2 pt-4">
             {{-- Filter dan Search --}}
-            <form method="GET" class="row g-2 mb-3">
+            <form method="GET" action="{{ route('books.index') }}" class="row g-2 mb-3">
                 <div class="col-md-12 gap-2 d-flex mb-4">
                     <div class="col-6">
                         <input type="text" name="search" class="form-control" placeholder="Search title, author, ISBN..."
@@ -29,7 +29,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
+                
+                <div class="col-md-3">
                     <select name="author_id" class="form-select">
                         <option value="">All Authors</option>
                         @foreach ($authors as $author)
@@ -39,18 +40,38 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    {{-- <label for="category_id" class="form-label">Filter by Category</label> --}}
-                    <select name="category_id" id="category_id" class="form-select">
-                        <option value="">All Category</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}"
-                                {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
+
+                <div class="dropdown col-md-3">
+
+                    <!-- BUTTON DROPDOWN -->
+                    <button class="form-control dropdown-toggle d-flex justify-content-between align-items-center"
+                        type="button" id="categoryDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="categorySelectedText">
+                            @if (request('categories'))
+                                {{ \App\Models\Category::whereIn('id', request('categories'))->pluck('name')->join(', ') }}
+                            @else
+                                Filter by Category
+                            @endif
+                        </span>
+                    </button>
+
+                    <!-- DROPDOWN LIST -->
+                    <ul class="dropdown-menu w-100 p-2" aria-labelledby="categoryDropdownButton"
+                        style="max-height: 250px; overflow-y:auto;">
+
+                        @foreach ($categories as $cat)
+                            <li class="dropdown-item">
+                                <label class="d-flex align-items-center">
+                                    <input type="checkbox" name="categories[]" value="{{ $cat->id }}"
+                                        class="form-check-input me-2 category-checkbox"
+                                        {{ in_array($cat->id, request('categories', [])) ? 'checked' : '' }}>
+                                    {{ $cat->name }}
+                                </label>
+                            </li>
                         @endforeach
-                    </select>
+                    </ul>
                 </div>
+
                 <div class="col-md-2">
                     <select name="publication_year" id="publication_year" class="form-select">
                         <option value="">All Years</option>
@@ -63,11 +84,6 @@
                     </select>
                 </div>
 
-
-                {{-- <div class="col-md-2">
-                    <input type="number" name="publication_year" class="form-control" placeholder="Public Year"
-                        value="{{ request('publication_year') }}">
-                </div> --}}
                 <div class="col-md-2">
                     <input type="number" name="min_rating" class="form-control" placeholder="Min rating"
                         value="{{ request('min_rating') }}">
@@ -133,4 +149,30 @@
             {{ $books->links() }}
         </div>
     </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('.category-checkbox');
+            const textBox = document.getElementById('categorySelectedText');
+
+            function updateText() {
+                let selected = [];
+                checkboxes.forEach(cb => {
+                    if (cb.checked) selected.push(cb.parentElement.textContent.trim());
+                });
+
+                textBox.textContent = selected.length ?
+                    selected.join(', ') :
+                    'Filter by Category';
+            }
+
+            // Update saat user mengklik kategori
+            checkboxes.forEach(cb => cb.addEventListener('change', updateText));
+
+            // Update setelah filter dijalankan
+            updateText();
+        });
+    </script>
 @endsection
