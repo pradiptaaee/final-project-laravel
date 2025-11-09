@@ -16,8 +16,8 @@ class BookSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-        $total = 3000; // total buku
-        $batchSize = 1000; // 2000 per batch biar cepat tapi aman di RAM
+        $total = 97000; // total buku
+        $batchSize = 3000; // 2000 per batch biar cepat tapi aman di RAM
 
         echo "🚀 Mulai seeding books data...\n";
 

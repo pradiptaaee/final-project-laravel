@@ -16,7 +16,7 @@ class AuthorSeeder extends Seeder
     {
         $faker = Faker::create();
         $data = [];
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 900; $i++) {
             $data[] = [
                 'name' => $faker->name,
                 'bio' => $faker->paragraph,

@@ -17,7 +17,7 @@ class CategorySeeder extends Seeder
     {
         $faker = Faker::create();
         $data = [];
-        for ($i = 0; $i < 300; $i++) {
+        for ($i = 0; $i < 2700; $i++) {
             $data[] = [
                 'name' => $faker->name,
                 'created_at' => now(),
