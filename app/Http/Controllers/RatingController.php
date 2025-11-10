@@ -1,5 +1,7 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Models\Author;
 use Illuminate\Http\Request;
 use App\Models\Rating;
 use Illuminate\Support\Facades\DB;
@@ -9,7 +11,7 @@ class RatingController extends Controller
     public function create()
     {
         // ambil list author (untuk dependent dropdown) dan sedikit buku contoh
-        $authors = \App\Models\Author::limit(200)->get();
+        $authors = Author::limit(200)->get();
         return view('ratings.create', compact('authors'));
     }
 
@@ -20,7 +22,7 @@ class RatingController extends Controller
             'rating' => 'required|integer|min:1|max:10',
         ]);
 
-        // ====== SESSION RULE untuk project: 1 rating per 24 jam (apa pun bukunya) ======
+        // SESSION RULE untuk project: 1 rating per 24 jam (apa pun bukunya)
         $lastRatedAt = session()->get('last_rating_time'); // ISO string
         if ($lastRatedAt) {
             $diffHours = now()->diffInHours(\Carbon\Carbon::parse($lastRatedAt));
